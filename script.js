@@ -1,5 +1,4 @@
 window.addEventListener('DOMContentLoaded', () => {
-
     // --- OBTENER REFERENCIAS A ELEMENTOS DEL DOM ---
     const allElements = {
         functionInput: document.getElementById('functionInput'),
@@ -19,7 +18,13 @@ window.addEventListener('DOMContentLoaded', () => {
         quadraticFunctionOutput: document.getElementById('quadraticFunctionOutput'),
         aiInterpretationDiv: document.getElementById('ai-interpretation'),
         aiText: document.getElementById('ai-text'),
-        chartCanvas: document.getElementById('myChart')
+        chartCanvas: document.getElementById('myChart'),
+        copyLinearBtn: document.getElementById('copyLinearBtn'),
+        copyQuadraticBtn: document.getElementById('copyQuadraticBtn'),
+        helpModal: document.getElementById('helpModal'),
+        helpBtn: document.getElementById('helpBtn'),
+        aboutOpen: document.getElementById('aboutOpen'),
+        closeModal: document.getElementById('closeModal')
     };
     let myChart = null;
 
@@ -31,6 +36,12 @@ window.addEventListener('DOMContentLoaded', () => {
         { name: "Raíz Cuadrada", func: "sqrt(x)", x0: 4, unitX: "kg", unitY: "N" },
         { name: "Onda Amortiguada", func: "exp(-0.5*x) * sin(3*x)", x0: 1, unitX: "s", unitY: "Pa" }
     ];
+
+    // --- GUARDAR Y RESTAURAR MODO OSCURO ---
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+        allElements.darkModeSwitch.checked = true;
+    }
 
     // --- FUNCIÓN PRINCIPAL DE CÁLCULO ---
     const performCalculation = () => {
@@ -59,17 +70,32 @@ window.addEventListener('DOMContentLoaded', () => {
             const f_double_prime_x0 = compiledDerivative2.evaluate({ x: x0 });
 
             if (![fx0, f_prime_x0, f_double_prime_x0].every(isFinite)) {
-                throw new Error('El resultado en x₀ no es un número finito.');
+                throw new Error('El resultado en x₀ no es un número finito o la función no está definida ahí.');
             }
 
             updateResultsUI(x0, fx0, f_prime_x0, f_double_prime_x0);
-            updateAIInterpretation(funcStr, x0, f_prime_x0, f_double_prime_x0);
-            
+            updateAIInterpretation(funcStr, x0, fx0, f_prime_x0, f_double_prime_x0);
+
             // Funciones de aproximación para el gráfico
             const linearApprox = (x) => fx0 + f_prime_x0 * (x - x0);
-            const quadraticApprox = (x) => fx0 + f_prime_x0 * (x - x0) + (f_double_prime_x0 / 2) * Math.pow(x - x0, 2);
+            const quadraticApprox = (x) =>
+                fx0 + f_prime_x0 * (x - x0) + (f_double_prime_x0 / 2) * Math.pow(x - x0, 2);
 
             drawChart(x0, compiledFunc, linearApprox, quadraticApprox);
+
+            // Mostrar botones de copiar
+            allElements.copyLinearBtn.style.display = "inline-block";
+            allElements.copyQuadraticBtn.style.display = "inline-block";
+            allElements.copyLinearBtn.onclick = () => {
+                navigator.clipboard.writeText(allElements.linearFunctionOutput.dataset.formula || '')
+                    .then(() => allElements.copyLinearBtn.textContent = "✅")
+                    .then(() => setTimeout(() => allElements.copyLinearBtn.textContent = "📋", 1200));
+            };
+            allElements.copyQuadraticBtn.onclick = () => {
+                navigator.clipboard.writeText(allElements.quadraticFunctionOutput.dataset.formula || '')
+                    .then(() => allElements.copyQuadraticBtn.textContent = "✅")
+                    .then(() => setTimeout(() => allElements.copyQuadraticBtn.textContent = "📋", 1200));
+            };
 
         } catch (error) {
             showError('Error al procesar la función: ' + error.message);
@@ -83,39 +109,72 @@ window.addEventListener('DOMContentLoaded', () => {
         const unitX = allElements.unitXInput.value || 'unidades';
         const unitY = allElements.unitYInput.value || 'unidades';
 
-        allElements.fx0Output.innerHTML = `f(${x0}) = <strong>${fx0.toFixed(4)} ${unitY}</strong>`;
-        allElements.derivative1Output.innerHTML = `f'(${x0}) (Pendiente) = <strong>${f1x0.toFixed(4)}</strong>`;
-        allElements.derivative2Output.innerHTML = `f''(${x0}) (Concavidad) = <strong>${f2x0.toFixed(4)}</strong>`;
+        allElements.fx0Output.innerHTML = `f(<b>${x0}</b>) = <strong>${fx0.toFixed(4)} ${unitY}</strong>`;
 
+        let critico = '';
+        if (Math.abs(f1x0) < 1e-4 && Math.abs(f2x0) > 1e-4) {
+            critico = f2x0 > 0 ? "(mínimo local)" : "(máximo local)";
+        } else if (Math.abs(f2x0) < 1e-4 && Math.abs(f1x0) < 1e-4) {
+            critico = "(punto de inflexión)";
+        }
+
+        allElements.derivative1Output.innerHTML =
+            `f'(${x0}) (Pendiente) = <strong>${f1x0.toFixed(4)}</strong> ${critico}`;
+
+        allElements.derivative2Output.innerHTML =
+            `f''(${x0}) (Concavidad) = <strong>${f2x0.toFixed(4)}</strong>`;
+
+        // Fórmulas explícitas
         const m = f1x0;
         const b = fx0 - m * x0;
-        allElements.linearFunctionOutput.innerHTML = `Aprox. Lineal: <strong>L(x) = ${m.toFixed(4)}x ${b >= 0 ? '+' : '-'} ${Math.abs(b).toFixed(4)}</strong>`;
-        allElements.quadraticFunctionOutput.innerHTML = `Aprox. Cuadrática: <strong>P(x) = ...</strong> (ver gráfico)`;
+        let linearFormula = `L(x) = ${m.toFixed(4)}·x ${b >= 0 ? '+' : '-'} ${Math.abs(b).toFixed(4)}`;
+        allElements.linearFunctionOutput.innerHTML = `Aprox. Lineal: <strong>${linearFormula}</strong>`;
+        allElements.linearFunctionOutput.dataset.formula = linearFormula;
+
+        let quadraticFormula = `P(x) = ${fx0.toFixed(4)} + ${m.toFixed(4)}·(x-${x0}) + ${ (f2x0 / 2).toFixed(4)}·(x-${x0})²`;
+        allElements.quadraticFunctionOutput.innerHTML = `Aprox. Cuadrática: <strong>${quadraticFormula}</strong>`;
+        allElements.quadraticFunctionOutput.dataset.formula = quadraticFormula;
+
+        // Añadir botones copiar
+        allElements.linearFunctionOutput.appendChild(allElements.copyLinearBtn);
+        allElements.quadraticFunctionOutput.appendChild(allElements.copyQuadraticBtn);
 
         allElements.resultsDiv.style.display = 'block';
     }
 
-    function updateAIInterpretation(funcStr, x0, f1x0, f2x0) {
+    function updateAIInterpretation(funcStr, x0, fx0, f1x0, f2x0) {
         let text = `En el punto <strong>x₀ = ${x0}</strong>, la función <strong>f(x) = ${funcStr}</strong> `;
-        
-        if (Math.abs(f1x0) < 1e-4) text += `es <strong>estacionaria</strong> (pendiente casi cero)`;
-        else if (f1x0 > 0) text += `está <strong>creciendo</strong> a una razón de ${f1x0.toFixed(4)}`;
-        else text += `está <strong>decreciendo</strong> a una razón de ${Math.abs(f1x0).toFixed(4)}`;
-        
-        text += `. <br><br>La segunda derivada nos habla de la curvatura. Como f''(${x0}) es `;
-        
-        if (Math.abs(f2x0) < 1e-4) text += `casi cero, la curvatura es mínima (punto de inflexión).`;
-        else if (f2x0 > 0) text += `<strong>positiva</strong>, la función es cóncava hacia arriba (como una 'U').`;
-        else text += `<strong>negativa</strong>, la función es cóncava hacia abajo (como una '∩').`;
+        let interpret = "";
 
-        text += `<br><br>La aproximación cuadrática (verde) se ajusta mejor a la curva que la lineal (roja) cerca de x₀.`
+        // IA más educativa: tipos de comportamiento local
+        if (Math.abs(f1x0) < 1e-4 && Math.abs(f2x0) > 1e-4)
+            interpret = f2x0 > 0 ? "presenta un <b>mínimo local</b>." : "presenta un <b>máximo local</b>.";
+        else if (Math.abs(f1x0) < 1e-4 && Math.abs(f2x0) < 1e-4)
+            interpret = "presenta un <b>punto de inflexión</b>.";
+        else if (f1x0 > 0)
+            interpret = `está <b>creciendo</b> cerca de x₀, a razón de ${f1x0.toFixed(4)} por unidad de x.`;
+        else
+            interpret = `está <b>decreciendo</b> cerca de x₀, a razón de ${Math.abs(f1x0).toFixed(4)} por unidad de x.`;
+
+        text += interpret;
+
+        text += `<br><br>La segunda derivada nos habla de la curvatura local. `;
+        if (Math.abs(f2x0) < 1e-4) text += `Como f''(${x0}) ≈ 0, la curvatura es mínima (posible punto de inflexión).`;
+        else if (f2x0 > 0) text += `Como f''(${x0}) &gt; 0, la función es <b>cóncava hacia arriba</b> (forma de "U").`;
+        else text += `Como f''(${x0}) &lt; 0, es <b>cóncava hacia abajo</b> (forma de "∩").`;
+
+        text += `<br><br>
+            <b>La aproximación cuadrática</b> (verde) se ajusta mejor a la curva que la lineal (roja) cerca de x₀.
+            <br>
+            Puedes mover el deslizador o cambiar x₀ para ver el comportamiento en distintos puntos.
+        `;
         allElements.aiText.innerHTML = text;
         allElements.aiInterpretationDiv.style.display = 'block';
     }
 
     function drawChart(x0, originalFunc, linearFunc, quadraticFunc) {
         if (myChart) myChart.destroy();
-        
+
         const range = Math.max(5, Math.abs(x0) * 1.5);
         const step = range / 50;
         const labels = [], originalData = [], linearData = [], quadraticData = [];
@@ -138,7 +197,27 @@ window.addEventListener('DOMContentLoaded', () => {
                     { label: `Aprox. Cuadrática (2º Orden)`, data: quadraticData, borderColor: '#2ecc71', borderWidth: 2, pointRadius: 0 }
                 ]
             },
-            options: { /* Opciones de Chart.js como antes */ }
+            options: {
+                plugins: {
+                    legend: { display: true, position: 'bottom' },
+                    tooltip: { enabled: true }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'x'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'f(x)'
+                        }
+                    }
+                },
+                animation: { duration: 400 }
+            }
         });
     }
 
@@ -164,6 +243,7 @@ window.addEventListener('DOMContentLoaded', () => {
         });
         allElements.darkModeSwitch.addEventListener('change', () => {
             document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', allElements.darkModeSwitch.checked);
         });
         allElements.exampleSelect.addEventListener('change', (e) => {
             const selectedExample = examples[e.target.value];
@@ -174,8 +254,46 @@ window.addEventListener('DOMContentLoaded', () => {
                 allElements.unitXInput.value = selectedExample.unitX;
                 allElements.unitYInput.value = selectedExample.unitY;
                 performCalculation();
+            } else {
+                allElements.functionInput.value = '';
+                allElements.x0Input.value = '';
+                allElements.x0Slider.value = 0;
+                allElements.unitXInput.value = '';
+                allElements.unitYInput.value = '';
+                allElements.resultsDiv.style.display = 'none';
+                allElements.aiInterpretationDiv.style.display = 'none';
             }
         });
+
+        // Ayuda modal
+        allElements.helpBtn.addEventListener('click', () => openModal());
+        allElements.aboutOpen.addEventListener('click', () => openModal());
+        allElements.aboutOpen.addEventListener('keydown', (e) => { if (e.key === 'Enter') openModal(); });
+        allElements.closeModal.addEventListener('click', () => closeModal());
+        allElements.closeModal.addEventListener('keydown', (e) => { if (e.key === 'Enter') closeModal(); });
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+        allElements.helpModal.addEventListener('click', (e) => {
+            if (e.target === allElements.helpModal) closeModal();
+        });
+
+        // Entrada rápida con Enter
+        allElements.functionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') performCalculation(); });
+        allElements.x0Input.addEventListener('keydown', (e) => { if (e.key === 'Enter') performCalculation(); });
+        allElements.unitXInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') performCalculation(); });
+        allElements.unitYInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') performCalculation(); });
+    }
+
+    function openModal() {
+        allElements.helpModal.style.display = 'flex';
+        allElements.helpModal.setAttribute('aria-hidden', 'false');
+        allElements.closeModal.focus();
+    }
+    function closeModal() {
+        allElements.helpModal.style.display = 'none';
+        allElements.helpModal.setAttribute('aria-hidden', 'true');
+        allElements.helpBtn.focus();
     }
 
     // --- INICIALIZACIÓN DE LA PÁGINA ---
