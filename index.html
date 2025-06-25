@@ -3,36 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proyecto de Linealización por Serie de Taylor</title>
+    <title>Proyecto Avanzado de Linealización</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="container">
+        <div class="top-bar">
+            <div class="example-selector">
+                <label for="exampleSelect">Cargar un ejemplo:</label>
+                <select id="exampleSelect">
+                    <option value="custom">-- Personalizado --</option>
+                </select>
+            </div>
+            <div class="dark-mode-toggle">
+                <label for="darkModeSwitch" class="switch-label">Modo Oscuro</label>
+                <label class="switch">
+                    <input type="checkbox" id="darkModeSwitch">
+                    <span class="slider-toggle"></span>
+                </label>
+            </div>
+        </div>
+
         <header>
-            <h1>Linealización de Funciones No Lineales</h1>
-            <p>Aplicación de la Serie de Taylor de primer orden.</p>
+            <h1>Linealización de Funciones</h1>
+            <p>Aproximación por Series de Taylor (1er y 2º Orden)</p>
         </header>
 
         <main>
+            <div id="error-container" class="error-message" style="display: none;"></div>
+
             <div class="input-section">
                 <div class="form-group large">
                     <label for="functionInput">Función No Lineal f(x):</label>
-                    <input type="text" id="functionInput" placeholder="Ej: x^2, sin(x), log(x)" value="log(x)">
+                    <input type="text" id="functionInput">
                 </div>
                 <div class="form-group small">
                     <label for="x0Input">Punto de Linealización (x₀):</label>
-                    <input type="number" id="x0Input" placeholder="Ej: 2" value="2">
+                    <input type="number" id="x0Input" step="0.1">
                 </div>
-                <div class="form-group small">
+                <div class="form-group medium">
+                    <label for="x0Slider">Control Deslizante:</label>
+                    <input type="range" id="x0Slider" min="-10" max="10" step="0.1" class="slider">
+                </div>
+                <button id="calculateBtn">Calcular y Graficar</button>
+            </div>
+            
+            <div class="input-section units-section">
+                 <div class="form-group small">
                     <label for="unitXInput">Unidad de x:</label>
-                    <input type="text" id="unitXInput" placeholder="Ej: segundos" value="s">
+                    <input type="text" id="unitXInput" placeholder="Ej: s">
                 </div>
                 <div class="form-group small">
                     <label for="unitYInput">Unidad de f(x):</label>
-                    <input type="text" id="unitYInput" placeholder="Ej: metros" value="m">
+                    <input type="text" id="unitYInput" placeholder="Ej: m">
                 </div>
-                <button id="calculateBtn">Calcular y Graficar</button>
             </div>
 
             <div class="output-container">
@@ -40,8 +65,10 @@
                     <div id="results" class="results-section" style="display: none;">
                         <h2>Resultados del Cálculo</h2>
                         <div id="fx0Output"></div>
-                        <div id="derivativeOutput"></div>
+                        <div id="derivative1Output"></div>
+                        <div id="derivative2Output"></div>
                         <div id="linearFunctionOutput"></div>
+                        <div id="quadraticFunctionOutput"></div>
                     </div>
                     
                     <div id="ai-interpretation" class="ai-section" style="display: none;">
@@ -61,7 +88,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
     <script src="script.js"></script>
 </body>
 </html>
