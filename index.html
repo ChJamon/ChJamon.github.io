@@ -19,24 +19,29 @@
             <div class="dark-mode-toggle">
                 <label for="darkModeSwitch" class="switch-label">Modo Oscuro</label>
                 <label class="switch">
-                    <input type="checkbox" id="darkModeSwitch">
+                    <input type="checkbox" id="darkModeSwitch" aria-label="Activar modo oscuro">
                     <span class="slider-toggle"></span>
                 </label>
             </div>
+            <button id="helpBtn" class="help-btn" title="Ayuda o información sobre la página" aria-label="Ayuda">?</button>
         </div>
 
         <header>
             <h1>Linealización de Funciones</h1>
-            <p>Aproximación por Series de Taylor (1er y 2º Orden)</p>
+            <p>
+                Utiliza la <strong>Serie de Taylor</strong> para aproximar funciones no lineales con polinomios de primer y segundo orden.
+                <br>
+                <span class="info-link" id="aboutOpen" tabindex="0">(¿Qué es la Linealización?)</span>
+            </p>
         </header>
 
         <main>
-            <div id="error-container" class="error-message" style="display: none;"></div>
+            <div id="error-container" class="error-message" style="display: none;" role="alert"></div>
 
             <div class="input-section">
                 <div class="form-group large">
                     <label for="functionInput">Función No Lineal f(x):</label>
-                    <input type="text" id="functionInput">
+                    <input type="text" id="functionInput" autocomplete="off" placeholder="Ej: sin(x) + x^2">
                 </div>
                 <div class="form-group small">
                     <label for="x0Input">Punto de Linealización (x₀):</label>
@@ -50,7 +55,7 @@
             </div>
             
             <div class="input-section units-section">
-                 <div class="form-group small">
+                <div class="form-group small">
                     <label for="unitXInput">Unidad de x:</label>
                     <input type="text" id="unitXInput" placeholder="Ej: s">
                 </div>
@@ -67,16 +72,19 @@
                         <div id="fx0Output"></div>
                         <div id="derivative1Output"></div>
                         <div id="derivative2Output"></div>
-                        <div id="linearFunctionOutput"></div>
-                        <div id="quadraticFunctionOutput"></div>
+                        <div id="linearFunctionOutput">
+                            <button id="copyLinearBtn" class="copy-btn" title="Copiar fórmula" style="display:none;">📋</button>
+                        </div>
+                        <div id="quadraticFunctionOutput">
+                            <button id="copyQuadraticBtn" class="copy-btn" title="Copiar fórmula" style="display:none;">📋</button>
+                        </div>
                     </div>
                     
                     <div id="ai-interpretation" class="ai-section" style="display: none;">
-                         <h2>Interpretación Automática (IA)</h2>
-                         <p id="ai-text"></p>
+                        <h2>Interpretación Automática (IA)</h2>
+                        <p id="ai-text"></p>
                     </div>
                 </div>
-
                 <div class="chart-column">
                     <div class="chart-container">
                         <canvas id="myChart"></canvas>
@@ -84,6 +92,33 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Modal de Ayuda/Acerca de -->
+    <div id="helpModal" class="modal" aria-modal="true" role="dialog" tabindex="-1">
+        <div class="modal-content">
+            <span class="close" id="closeModal" tabindex="0" aria-label="Cerrar ayuda">&times;</span>
+            <h2>¿Qué es la Linealización y la Serie de Taylor?</h2>
+            <p>
+                La <b>linealización</b> es una técnica matemática que aproxima una función no lineal por una función polinómica (usualmente lineal o cuadrática) cerca de un punto, facilitando su análisis y resolución.
+            </p>
+            <p>
+                La <b>Serie de Taylor</b> permite expresar una función f(x) en torno a un punto x₀ como la suma de su valor, derivada, segunda derivada, etc. Por ejemplo:
+                <br>
+                <code>
+                    f(x) ≈ f(x₀) + f'(x₀)(x-x₀) + (1/2)f''(x₀)(x-x₀)²
+                </code>
+            </p>
+            <ul>
+                <li><b>Aprox. Lineal:</b> polinomio de 1er orden (recta tangente en x₀).</li>
+                <li><b>Aprox. Cuadrática:</b> polinomio de 2º orden (considera la curvatura).</li>
+            </ul>
+            <p>
+                <b>¿Por qué es útil?</b> Permite simplificar y entender sistemas complejos y modelar su comportamiento local.
+            </p>
+            <hr>
+            <p style="font-size:smaller;">Desarrollado por ChJamon. Proyecto educativo. <a href="https://github.com/ChJamon/ChJamon.github.io" target="_blank" rel="noopener">Ver código fuente</a></p>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.js"></script>
