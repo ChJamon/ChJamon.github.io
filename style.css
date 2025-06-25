@@ -1,0 +1,132 @@
+/* Estilos generales */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin: auto;
+}
+
+header {
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+/* Sección de Entradas */
+.input-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.large { flex: 2 1 300px; }
+.form-group.small { flex: 1 1 120px; }
+
+.form-group label {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #34495e;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+button#calculateBtn {
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    height: 42px; 
+    margin-left: 10px;
+}
+
+button#calculateBtn:hover {
+    background-color: #2980b9;
+}
+
+/* Contenedores de Salida */
+.output-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.results-column {
+    flex: 1;
+    min-width: 350px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.chart-column {
+    flex: 1.5;
+    min-width: 400px;
+}
+
+/* Sección de Resultados y de IA */
+.results-section, .ai-section {
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.results-section {
+    background-color: #ecf0f1;
+    border-left: 5px solid #3498db;
+}
+
+.results-section h2, .ai-section h2 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+.results-section div {
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    word-wrap: break-word;
+}
+
+.ai-section {
+    background-color: #e8f6f3;
+    border-left: 5px solid #1abc9c;
+}
+
+.ai-section p {
+    font-size: 1.05em;
+    line-height: 1.6;
+}
+
+/* Contenedor del Gráfico */
+.chart-container {
+    position: relative;
+    height: 450px;
+    width: 100%;
+}
